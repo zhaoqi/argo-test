@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: appclusters
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/zhaoqi/argo-test.git
+        revision: HEAD
+        files:
+          - path: "app-clusters/**/config.yaml"
+  template:
+    metadata:
+      name: "{{ name }}"
+    spec:
+      project: "default"
+      source:
+        repoURL: https://github.com/zhaoqi/argo-test.git
+        targetRevision: HEAD
+        path: "app-template"
+        helm:
+          ignoreMissingValueFiles: true
+          valueFiles:
+            - values-{{ name }}.yaml
+      destination:
+        server: "https://kubernetes.default.svc"
+        namespace: "default"
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - CreateNamespace=false
